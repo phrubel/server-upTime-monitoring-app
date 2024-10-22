@@ -17,10 +17,10 @@ const data = require('./lib/data');
 // app object module scaffolding
 const app = {};
 
-data.createData(
+data.updateData(
   'test',
   'text',
-  { name: 'Parvez Hasan Rubel', age: 21, job: 'student' },
+  { name: 'Parvez', age: 28, job: 'Software Engineer' },
   (err) => {
     console.log(err);
   }
