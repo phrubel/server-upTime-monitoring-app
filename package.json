@@ -1,0 +1,13 @@
+{
+  "name": "uptime-monitoring-app",
+  "version": "1.0.0",
+  "description": "This is a server uptime app project for monitoring",
+  "main": "server.js",
+  "scripts": {
+    "start": "NODE_ENV=staging nodemon server.js",
+    "production": "NODE_ENV=production nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Parvez Hasan Rubel",
+  "license": "ISC"
+}
