@@ -7,7 +7,7 @@ Comments:
     * version: 1.0.0: 
 */
 // dependencies
-const { hash } = require('../../helpers/utilities');
+const { hash, parseJSON } = require('../../helpers/utilities');
 const data = require('../../lib/data');
 
 // module scaffolding
@@ -30,78 +30,34 @@ handler._users = {};
 
 // users crud method which i want to allow
 handler._users.get = (requestProperties, callback) => {
-  callback(200, { message: 'this is the user route' });
+  // check the phone is valid
+  const phone =
+    typeof requestProperties.queryStringObject.phone === 'string' &&
+    requestProperties.queryStringObject.phone.trim().length === 11
+      ? requestProperties.queryStringObject.phone
+      : false;
+
+  if (phone) {
+    // lookup the user
+    data.readData('users', phone, (err, userData) => {
+      // convert to object and copy the user data bcz it is a string
+      const user = { ...parseJSON(userData) };
+      if (!err && user) {
+        // delete the password bcz we do not want to get user password
+        delete user.password;
+        callback(200, user);
+      } else {
+        callback(404, {
+          message: 'user phone is not found',
+        });
+      }
+    });
+  } else {
+    callback(404, {
+      message: 'user phone is not found',
+    });
+  }
 };
-// handler._users.post = (requestProperties, callback) => {
-//   // first name
-//   const firstName =
-//     typeof requestProperties.body.firstName === 'string' &&
-//     requestProperties.body.firstName.trim().length > 0
-//       ? requestProperties.body.firstName
-//       : false;
-//   // last name
-//   const lastName =
-//     typeof requestProperties.body.lastName === 'string' &&
-//     requestProperties.body.lastName.trim().length > 0
-//       ? requestProperties.body.lastName.trim()
-//       : false;
-//   // phone
-//   const phone =
-//     typeof requestProperties.body.phone === 'string' &&
-//     requestProperties.body.phone.trim().length === 11
-//       ? requestProperties.body.phone.trim()
-//       : false;
-
-//   // password
-//   const password =
-//     typeof requestProperties.body.password === 'string' &&
-//     requestProperties.body.password.trim().length > 0
-//       ? requestProperties.body.password.trim()
-//       : false;
-
-//   // term and condition
-//   const tosAgreement =
-//     typeof requestProperties.body.tosAgreement === 'boolean' &&
-//     requestProperties.body.tosAgreement === true
-//       ? true
-//       : false;
-
-//   if (firstName && lastName && phone && password && tosAgreement) {
-//     // make sure that user doesn't already exist
-//     data.read('users', phone, (err) => {
-//       // if user doesn't exist
-//       if (err) {
-//         let userObject = {
-//           firstName,
-//           lastName,
-//           phone,
-//           password: hashedPassword(password),
-//           tosAgreement,
-//         };
-//         // store the user
-//         data.createData('users', phone, userObject, (err) => {
-//           if (!err) {
-//             callback(200, {
-//               message: 'user created successfully',
-//             });
-//           } else {
-//             callback(400, {
-//               Error: 'user created failed',
-//             });
-//           }
-//         });
-//       } else {
-//         callback(400, {
-//           Error: 'This is a server side error',
-//         });
-//       }
-//     });
-//   } else {
-//     callback(400, {
-//       Error: 'you have a problem in your request',
-//     });
-//   }
-// };
 
 handler._users.post = (requestProperties, callback) => {
   const firstName =
