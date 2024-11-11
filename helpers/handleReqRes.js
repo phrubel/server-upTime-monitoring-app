@@ -7,77 +7,124 @@ Comments:
     * version: 1.0.0: 
 */
 
+// // dependencies
+// const url = require('url');
+// const routes = require('../routes');
+// const StringDecoder = require('string_decoder').StringDecoder;
+// const { notFoundHandler } = require('../handler/routeHandlers/notFoundHandler');
+// const { parseJson } = require('./utilities');
+
+// // module scaffolding
+// const handler = {};
+
+// // handle request and response
+// handler.handleReqRes = (req, res) => {
+//   const parsedUrl = url.parse(req.url, true);
+//   const path = parsedUrl.pathname;
+//   const trimmedPath = path.replace(/^\/+|\/+$/g, '');
+//   const method = req.method.toLowerCase();
+//   const queryStringObject = parsedUrl.query;
+//   const headersObject = req.headers;
+
+//   const requestProperties = {
+//     parsedUrl,
+//     path,
+//     trimmedPath,
+//     method,
+//     queryStringObject,
+//     headersObject,
+//   };
+
+//   const decoder = new StringDecoder('utf-8');
+//   let realData = '';
+
+//   const chosenHandler = routes[trimmedPath]
+//     ? routes[trimmedPath]
+//     : notFoundHandler;
+
+//   req.on('data', (buffer) => {
+//     realData += decoder.write(buffer);
+//   });
+
+//   req.on('end', () => {
+//     realData += decoder.end();
+
+//     requestProperties.body = parseJson(realData || {});
+
+//     chosenHandler(requestProperties, (statusCode, payload) => {
+//       statusCode = typeof statusCode === 'number' ? statusCode : 500;
+//       payload = typeof payload === 'object' ? payload : {};
+
+//       const payloadString = JSON.stringify(payload);
+
+//       // return the final response
+//       res.setHeader('Content-Type', 'application/json');
+//       res.writeHead(statusCode);
+//       res.end(payloadString);
+//     });
+//   });
+// };
+
+// module.exports = handler;
+
 // dependencies
 const url = require('url');
 const routes = require('../routes');
 const StringDecoder = require('string_decoder').StringDecoder;
 const { notFoundHandler } = require('../handler/routeHandlers/notFoundHandler');
+const { parseJSON } = require('./utilities');
 
-// module scaffolding
+// modue scaffolding
 const handler = {};
 
-// handle request and response
 handler.handleReqRes = (req, res) => {
   // request handling
-  // get url and parse it
+  // get the url and parse it
   const parsedUrl = url.parse(req.url, true);
-  // get pathname
   const path = parsedUrl.pathname;
   const trimmedPath = path.replace(/^\/+|\/+$/g, '');
-  // get query string as an object
-  const queryStringObject = parsedUrl.query;
-  // get HTTP method
   const method = req.method.toLowerCase();
+  const queryStringObject = parsedUrl.query;
+  const headersObject = req.headers;
 
-  // get headers as an object
-  const headers = req.headers;
-
-  // request properties
   const requestProperties = {
     parsedUrl,
     path,
     trimmedPath,
-    queryStringObject,
     method,
-    headers,
+    queryStringObject,
+    headersObject,
   };
 
-  // decode payload
   const decoder = new StringDecoder('utf-8');
   let realData = '';
 
-  // choose the handler this request should go to. if one is not found, use the not found handler
   const chosenHandler = routes[trimmedPath]
     ? routes[trimmedPath]
     : notFoundHandler;
 
-  // get the payload, if any from the request object
   req.on('data', (buffer) => {
     realData += decoder.write(buffer);
   });
 
-  // send response
   req.on('end', () => {
     realData += decoder.end();
-    // construct the data object to send to the handler
+
+    // requestProperties.body = parseJson(realData);
+    requestProperties.body = parseJSON(realData || '{}');
+
     chosenHandler(requestProperties, (statusCode, payload) => {
-      // check the status code
       statusCode = typeof statusCode === 'number' ? statusCode : 500;
-      // check the payload
       payload = typeof payload === 'object' ? payload : {};
 
       const payloadString = JSON.stringify(payload);
 
-      // finally send response
+      // return the final response
+      res.setHeader('Content-Type', 'application/json');
       res.writeHead(statusCode);
       res.end(payloadString);
     });
-
-    // response
-    res.end('Welcome to uptime monitoring App!');
   });
-
-  // choose the handler this request should go to. if one is not found, use the not found handler
 };
 
 module.exports = handler;

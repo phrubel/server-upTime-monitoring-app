@@ -1,7 +1,7 @@
 /*
 Comments:
     * Title: handler
-    * Description: handle the routes.
+    * Description: handle sample routes.
     * Author: Parvez Hasan Rubel
     * Date: 08/10/2024
     * version: 1.0.0: 

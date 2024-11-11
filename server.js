@@ -17,14 +17,17 @@ const data = require('./lib/data');
 // app object module scaffolding
 const app = {};
 
-data.updateData(
-  'test',
-  'text',
-  { name: 'Parvez', age: 28, job: 'Software Engineer' },
-  (err) => {
-    console.log(err);
-  }
-);
+// data.createData(
+//   'test',
+//   'text',
+//   {
+//     name: 'Parvez',
+//     job: 'Developer',
+//   },
+//   (err) => {
+//     console.log(err);
+//   }
+// );
 
 // create server
 app.createServer = () => {
