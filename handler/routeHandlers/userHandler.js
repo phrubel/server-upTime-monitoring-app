@@ -29,6 +29,7 @@ handler.userHandler = (requestProperties, callback) => {
 handler._users = {};
 
 // users crud method which i want to allow
+// get method
 handler._users.get = (requestProperties, callback) => {
   // check the phone is valid
   const phone =
@@ -59,6 +60,7 @@ handler._users.get = (requestProperties, callback) => {
   }
 };
 
+// post method
 handler._users.post = (requestProperties, callback) => {
   const firstName =
     typeof requestProperties.body.firstName === 'string' &&
@@ -127,7 +129,78 @@ handler._users.post = (requestProperties, callback) => {
   }
 };
 
-handler._users.put = (requestProperties, callback) => {};
+// put method
+handler._users.put = (requestProperties, callback) => {
+  const phone =
+    typeof requestProperties.body.phone === 'string' &&
+    requestProperties.body.phone.trim().length === 11
+      ? requestProperties.body.phone
+      : false;
+
+  const firstName =
+    typeof requestProperties.body.firstName === 'string' &&
+    requestProperties.body.firstName.trim().length > 0
+      ? requestProperties.body.firstName
+      : false;
+
+  const lastName =
+    typeof requestProperties.body.lastName === 'string' &&
+    requestProperties.body.lastName.trim().length > 0
+      ? requestProperties.body.lastName
+      : false;
+
+  const password =
+    typeof requestProperties.body.password === 'string' &&
+    requestProperties.body.password.trim().length > 0
+      ? requestProperties.body.password
+      : false;
+
+  if (phone) {
+    if (firstName || lastName || password) {
+      // lookup the user
+      data.readData('users', phone, (err1, uData) => {
+        const userData = { ...parseJSON(uData) };
+        if (!err1 && userData) {
+          if (firstName) {
+            userData.firstName = firstName;
+          }
+          if (lastName) {
+            userData.lastName = lastName;
+          }
+          if (password) {
+            userData.password = hash(password);
+          }
+
+          data.updateData('users', phone, userData, (err) => {
+            if (!err) {
+              callback(200, {
+                message: ' User data updated successfully!',
+              });
+            } else {
+              callback(500, {
+                error: 'This is Internal server error!',
+              });
+            }
+          });
+        } else {
+          callback(400, {
+            error: 'You have a problem in your request!',
+          });
+        }
+      });
+    } else {
+      callback(400, {
+        error: 'You have a problem in your request!',
+      });
+    }
+  } else {
+    callback(400, {
+      error: 'Invalid phone number, TRy again!',
+    });
+  }
+};
+
+// delete method
 handler._users.delete = (requestProperties, callback) => {};
 
 module.exports = handler;
