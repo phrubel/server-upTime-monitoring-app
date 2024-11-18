@@ -26,7 +26,7 @@ const environments = require('./environments');
 // };
 
 // // hashing password
-// utilities.hashedPassword = (str) => {
+// utilities.hash = (str) => {
 //   if (typeof str === 'string' && str.length > 0) {
 //     const hash = crypto
 //       .createHmac('sha256', environments.secretKey)
@@ -37,7 +37,7 @@ const environments = require('./environments');
 //     return false;
 //   }
 // };
-// module.exports = utilities;
+// // module.exports = utilities;
 
 // module scaffolding
 const utilities = {};
@@ -64,6 +64,25 @@ utilities.hash = (str) => {
       .update(str)
       .digest('hex');
     return hash;
+  }
+  return false;
+};
+
+// create random string
+utilities.createRandomString = (strLength) => {
+  let length = strLength;
+  length = typeof strLength === 'number' && strLength > 0 ? strLength : false;
+
+  if (length) {
+    let possibleCharacters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let output = '';
+    for (let i = 1; i <= length; i++) {
+      let randomCharacter = possibleCharacters.charAt(
+        Math.floor(Math.random() * possibleCharacters.length) - 1
+      );
+      output += randomCharacter;
+    }
+    return output;
   }
   return false;
 };
