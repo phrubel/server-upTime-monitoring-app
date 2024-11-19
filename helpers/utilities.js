@@ -74,7 +74,7 @@ utilities.createRandomString = (strLength) => {
   length = typeof strLength === 'number' && strLength > 0 ? strLength : false;
 
   if (length) {
-    let possibleCharacters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let possibleCharacters = 'abcdefghijklmnopqrstuvwxyz1234567890';
     let output = '';
     for (let i = 1; i <= length; i++) {
       let randomCharacter = possibleCharacters.charAt(

@@ -110,9 +110,79 @@ handler._token.post = (requestProperties, callback) => {
 };
 
 // token put method
-handler._token.put = (requestProperties, callback) => {};
+handler._token.put = (requestProperties, callback) => {
+  const id =
+    typeof requestProperties.body.id === 'string' &&
+    requestProperties.body.id.trim().length === 20
+      ? requestProperties.body.id
+      : false;
+
+  const extend =
+    typeof requestProperties.body.extend === 'boolean' &&
+    requestProperties.body.extend === true
+      ? true
+      : false;
+
+  if (id && extend) {
+    data.readData('tokens', id, (err, tokenData) => {
+      const tokenObject = parseJSON(tokenData);
+      if (tokenObject.expires > Date.now()) {
+        tokenObject.expires = Date.now() + 60 * 60 * 1000;
+        // store the token
+        data.updateData('tokens', id, tokenObject, (err) => {
+          if (!err) {
+            callback(200);
+          } else {
+            callback(500, {
+              error: 'There was Internal server error!',
+            });
+          }
+        });
+      } else {
+        callback(400, {
+          error: 'Token already expired!',
+        });
+      }
+    });
+  } else {
+    callback(400, {
+      error: 'You have a problem in your request',
+    });
+  }
+};
 
 // token delete method
-handler._token.delete = (requestProperties, callback) => {};
+handler._token.delete = (requestProperties, callback) => {
+  const id =
+    typeof requestProperties.queryStringObject.id === 'string' &&
+    requestProperties.queryStringObject.id.trim().length === 20
+      ? requestProperties.queryStringObject.id
+      : false;
+
+  if (id) {
+    // lookup the user
+    data.readData('tokens', id, (err1, tokenData) => {
+      if (!err1 && tokenData) {
+        data.deleteData('tokens', id, (err2) => {
+          if (!err2) {
+            callback(200, {
+              message: 'Token deleted successfully!',
+            });
+          } else {
+            callback(500, {
+              error: 'There was a problem in server side!',
+            });
+          }
+        });
+      } else {
+        callback(400, {
+          error: 'You have a problem in your request!',
+        });
+      }
+    });
+  } else {
+    callback(400, { error: 'Invalid token, TRy again!' });
+  }
+};
 
 module.exports = handler;
