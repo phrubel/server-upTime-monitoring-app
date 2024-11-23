@@ -17,12 +17,14 @@ environments.staging = {
   port: 3000,
   envName: 'staging',
   secretKey: 'thisIsASecretKey',
+  maxChecks: 5,
 };
 
 environments.production = {
   port: 5000,
   envName: 'production',
   secretKey: 'thisIsDEvelopmentASecretKey',
+  maxChecks: 5,
 };
 
 // determine which environment was passed as a command-line argument
