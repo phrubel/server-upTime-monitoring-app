@@ -296,6 +296,95 @@ handler._check.put = (requestProperties, callback) => {
 };
 
 // delete method
-handler._check.delete = (requestProperties, callback) => {};
+handler._check.delete = (requestProperties, callback) => {
+  const id =
+    typeof requestProperties.queryStringObject.id === 'string' &&
+    requestProperties.queryStringObject.id.trim().length === 20
+      ? requestProperties.queryStringObject.id
+      : false;
+
+  if (id) {
+    //lookup the check
+    data.readData('checks', id, (err, checkData) => {
+      if (!err && checkData) {
+        const token =
+          typeof requestProperties.headersObject.token === 'string'
+            ? requestProperties.headersObject.token
+            : false;
+
+        _token.verify(token, parseJSON(checkData).userPhone, (tokenId) => {
+          if (tokenId) {
+            // delete the check data
+            data.deleteData('checks', id, (err2) => {
+              if (!err2) {
+                data.readData(
+                  'users',
+                  parseJSON(checkData).userPhone,
+                  (err3, userData) => {
+                    let userObject = parseJSON(userData);
+                    if (!err3 && userData) {
+                      let userChecks =
+                        typeof userObject.checks === 'object' &&
+                        userObject.checks instanceof Array
+                          ? userObject.checks
+                          : {};
+                      // remove the deleted check from user list of checks
+                      let checkPosition = userChecks.indexOf(id);
+
+                      if (checkPosition > -1) {
+                        userChecks.splice(checkPosition, 1);
+                        userObject.checks = userChecks;
+                        // save the new check list
+                        data.updateData(
+                          'users',
+                          userObject.phone,
+                          userObject,
+                          (err4) => {
+                            if (!err4) {
+                              callback(200);
+                            } else {
+                              callback(500, {
+                                error:
+                                  'Your check id could not be deleted, try again!',
+                              });
+                            }
+                          }
+                        );
+                      } else {
+                        callback(500, {
+                          error: 'There was a problem in server side!',
+                        });
+                      }
+                    } else {
+                      callback(500, {
+                        error: 'There was a problem in server side!',
+                      });
+                    }
+                  }
+                );
+              } else {
+                callback(500, {
+                  error: 'There was a problem in server side!',
+                });
+              }
+            });
+          } else {
+            callback(403, {
+              error: 'Authentication failure!',
+            });
+          }
+        });
+      } else {
+        callback(500, {
+          error: 'There was a problem in server side!',
+        });
+      }
+    });
+  } else {
+    callback(400, {
+      error: 'Problem in your request!',
+    });
+  }
+};
 
 module.exports = handler;
