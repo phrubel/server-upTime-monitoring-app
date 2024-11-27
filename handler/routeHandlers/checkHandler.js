@@ -34,7 +34,6 @@ handler.checkHandler = (requestProperties, callback) => {
 // users module scaffolding
 handler._check = {};
 
-// users crud method which i want to allow
 // get method
 handler._check.get = (requestProperties, callback) => {
   const id =
@@ -195,7 +194,106 @@ handler._check.post = (requestProperties, callback) => {
 };
 
 // put method
-handler._check.put = (requestProperties, callback) => {};
+handler._check.put = (requestProperties, callback) => {
+  const id =
+    typeof requestProperties.body.id === 'string' &&
+    requestProperties.body.id.trim().length === 20
+      ? requestProperties.body.id
+      : false;
+
+  // validate the input from user
+  let protocol =
+    typeof requestProperties.body.protocol === 'string' &&
+    ['http', 'https'].indexOf(requestProperties.body.protocol) > -1
+      ? requestProperties.body.protocol
+      : false;
+
+  let url =
+    typeof requestProperties.body.url === 'string' &&
+    requestProperties.body.url.trim().length > 0
+      ? requestProperties.body.url
+      : false;
+
+  let method =
+    typeof requestProperties.body.method === 'string' &&
+    ['GET', 'POST', 'PUT', 'DELETE'].indexOf(requestProperties.body.method) > -1
+      ? requestProperties.body.method
+      : false;
+
+  // instance of array use for check array
+  let successCodes =
+    typeof requestProperties.body.successCodes === 'object' &&
+    requestProperties.body.successCodes instanceof Array
+      ? requestProperties.body.successCodes
+      : false;
+
+  // timeoutSeconds modulus use for check vognangshao
+  let timeoutSeconds =
+    typeof requestProperties.body.timeoutSeconds === 'number' &&
+    requestProperties.body.timeoutSeconds % 1 === 0 &&
+    requestProperties.body.timeoutSeconds >= 1 &&
+    requestProperties.body.timeoutSeconds <= 5
+      ? requestProperties.body.timeoutSeconds
+      : false;
+
+  if (id) {
+    if (protocol || url || method || successCodes || timeoutSeconds) {
+      // check data validation
+      data.readData('checks', id, (err, checkData) => {
+        if (!err && checkData) {
+          const checkObject = parseJSON(checkData);
+          const token =
+            typeof requestProperties.headersObject.token === 'string'
+              ? requestProperties.headersObject.token
+              : false;
+
+          // token verify
+          _token.verify(token, checkObject.userPhone, (tokenIsValid) => {
+            if (tokenIsValid) {
+              // update the check data
+              if (protocol) {
+                checkObject.protocol = protocol;
+              }
+
+              if (url) {
+                checkObject.url = url;
+              }
+
+              if (method) {
+                checkObject.method = method;
+              }
+
+              if (successCodes) {
+                checkObject.successCodes = successCodes;
+              }
+
+              if (timeoutSeconds) {
+                checkObject.timeoutSeconds = timeoutSeconds;
+              }
+
+              // save the update data
+              data.updateData('checks', id, checkObject, (err2) => {
+                if (!err2) {
+                  callback(200);
+                } else {
+                  callback(500, { error: 'Internal Server error!' });
+                }
+              });
+            } else {
+              callback(403, { error: 'Authentication failure!' });
+            }
+          });
+        } else {
+          callback(500, { error: 'There was a problem in server side!' });
+        }
+      });
+    } else {
+      callback(400, { error: 'You must input at least one field to update' });
+    }
+  } else {
+    callback(400, { error: 'Missing required fields' });
+  }
+};
 
 // delete method
 handler._check.delete = (requestProperties, callback) => {};
