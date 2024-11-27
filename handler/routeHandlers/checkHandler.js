@@ -36,7 +36,43 @@ handler._check = {};
 
 // users crud method which i want to allow
 // get method
-handler._check.get = (requestProperties, callback) => {};
+handler._check.get = (requestProperties, callback) => {
+  const id =
+    typeof requestProperties.queryStringObject.id === 'string' &&
+    requestProperties.queryStringObject.id.trim().length === 20
+      ? requestProperties.queryStringObject.id
+      : false;
+
+  if (id) {
+    //lookup the check
+    data.readData('checks', id, (err, checkData) => {
+      if (!err && checkData) {
+        const token =
+          typeof requestProperties.headersObject.token === 'string'
+            ? requestProperties.headersObject.token
+            : false;
+
+        _token.verify(token, parseJSON(checkData).userPhone, (tokenId) => {
+          if (tokenId) {
+            callback(200, parseJSON(checkData));
+          } else {
+            callback(403, {
+              error: 'Authentication failure!',
+            });
+          }
+        });
+      } else {
+        callback(500, {
+          error: 'There was a problem in server side!',
+        });
+      }
+    });
+  } else {
+    callback(400, {
+      error: 'Problem in your request!',
+    });
+  }
+};
 
 // post method
 handler._check.post = (requestProperties, callback) => {
